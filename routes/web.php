@@ -10,6 +10,10 @@ use App\Livewire\Catalogo;
 use App\Livewire\PrestamosUser;
 use App\Livewire\ReservasDocente;
 use App\Livewire\ReservasAdmin;
+use App\Livewire\AprobacionCatalogo;
+use App\Livewire\RegistroPrestamo;
+use App\Livewire\SolicitudPrestamo;
+
 
 
 Route::view('/', 'home')->name('home');
@@ -23,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mis-prestamos', PrestamosUser::class)->name('mis.prestamos');
     
 });
-Route::middleware(['role:bibliotecario'])->group(function () {
+Route::middleware(['role:bibliotecario|encargado_usuarios|encargado_catalogo|encargado_prestamos'])->group(function () {
         
         Route::get('/admin/libros', LibrosCrud::class)->name('admin.libros');
         Route::get('/admin/usuarios',UsuariosCrud::class)->name('admin.usuarios');
@@ -31,6 +35,9 @@ Route::middleware(['role:bibliotecario'])->group(function () {
         Route::get('/admin/devoluciones', Devoluciones::class)->name('admin.devoluciones');
         Route::get('/admin/multas', Multas::class)->name('admin.multas');
         Route::get('/admin/reservas', ReservasAdmin::class)->name('admin.reservas');
+        Route::get('/admin/aprobacion-catalogo', AprobacionCatalogo::class)->name('admin.aprobacion.catalogo');
+        Route::get('/admin/registro-prestamo', RegistroPrestamo::class)->name('admin.registro.prestamo');
+        Route::get('/admin/solicitud-prestamo', SolicitudPrestamo::class)->name('admin.solicitud.prestamo');
         
     });
 

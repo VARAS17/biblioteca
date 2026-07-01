@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('editorial')->nullable();
             $table->year('published_year')->nullable();
             $table->text('description')->nullable();
+            $table->string('cover')->nullable();
+
             
             // Para RUP y escalabilidad, usamos SoftDeletes (borrado lógico)
             $table->softDeletes(); 

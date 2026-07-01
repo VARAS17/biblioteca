@@ -13,25 +13,27 @@ class PrestamosUser extends Component
 {
     use WithPagination;
 
-    public $tab = 'activos'; // 'activos' o 'historial'
+    public $tab = 'activos';
 
     public function render()
     {
         $user = Auth::user();
-        
+
         $query = Loan::where('user_id', $user->id)
-                     ->with(['copy.book', 'fine']);
+                     ->with(['copy.book', 'book', 'fine']);
 
         if ($this->tab === 'activos') {
-            $query->where('status', 'active');
+            $query->whereIn('status', ['pending', 'approved', 'active']);
         } else {
-            $query->where('status', 'returned');
+            $query->whereIn('status', ['returned', 'rejected']);
         }
 
         return view('livewire.prestamos-user', [
-            'loans' => $query->latest()->paginate(8),
-            'active_count' => Loan::where('user_id', $user->id)->where('status', 'active')->count(),
-            'real_debt' => $user->real_debt
+            'loans'        => $query->latest()->paginate(8),
+            'active_count' => Loan::where('user_id', $user->id)
+                                  ->whereIn('status', ['pending', 'approved', 'active'])
+                                  ->count(),
+            'real_debt'    => $user->real_debt,
         ]);
     }
 }

@@ -3,15 +3,16 @@
 namespace App\Livewire;
 
 use App\Models\{Book, Category, Author, Copy};
-use Livewire\{Component, WithPagination};
+use Livewire\{Component, WithPagination, WithFileUploads}; // Importar WithFileUploads
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\Storage; // Importar Storage
 
 #[Layout('layouts.public-layout')]
 class LibrosCrud extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads; // Usar el trait para archivos
 
     // --- PARÁMETROS DE CONFIGURACIÓN ---
     const PAGINATION_COUNT = 10;
@@ -26,6 +27,8 @@ class LibrosCrud extends Component
     // --- PROPIEDADES DEL MODELO LIBRO ---
     public $book_id;
     public $title, $isbn, $category_id, $editorial, $published_year, $description;
+    public $cover;          // Para el nuevo archivo subido
+    public $existing_cover; // Para mostrar la ruta actual al editar
     
     // --- PROPIEDADES DE RELACIONES Y BÚSQUEDA ---
     public $selected_authors = [];
@@ -40,7 +43,7 @@ class LibrosCrud extends Component
     public $name, $model_id, $is_editing_secondary = false;
 
     /**
-     * Reglas de validación parametrizadas
+     * Reglas de validación
      */
     protected function rules() {
         return [
@@ -51,12 +54,10 @@ class LibrosCrud extends Component
             'published_year' => 'required|integer|digits:4|min:1000|max:' . (date('Y') + 1),
             'description'    => 'nullable|string|max:2000',
             'selected_authors' => 'required|array|min:1',
+            'cover'          => 'nullable|image|max:2048', // Validación de imagen (2MB máx)
         ];
     }
 
-    /**
-     * NAVEGACIÓN Y CARGA DE DATOS
-     */
     public function setView($viewName, $id = null)
     {
         $this->resetErrorBag();
@@ -79,6 +80,7 @@ class LibrosCrud extends Component
             $this->editorial      = $book->editorial;
             $this->published_year = $book->published_year;
             $this->description    = $book->description;
+            $this->existing_cover = $book->cover; // Cargar ruta actual
             $this->selected_authors = $book->authors->pluck('id')->toArray();
         } else {
             $this->resetBookFields();
@@ -90,9 +92,6 @@ class LibrosCrud extends Component
         $this->reset(['copy_inventory_code', 'copy_location']);
     }
 
-    /**
-     * LÓGICA DE EJEMPLARES (STOCK)
-     */
     public function saveCopy()
     {
         $this->validate([
@@ -119,33 +118,45 @@ class LibrosCrud extends Component
     }
 
     /**
-     * CRUD LIBROS
+     * CRUD LIBROS CON PORTADA
      */
     public function saveBook()
     {
         $data = $this->validate();
 
-        // Extraemos autores para el sync y limpiamos el array para el updateOrCreate
+        // Manejo de la imagen de portada
+        if ($this->cover) {
+            // Eliminar imagen anterior si existe (solo en edición)
+            if ($this->book_id) {
+                $oldBook = Book::find($this->book_id);
+                if ($oldBook && $oldBook->cover) {
+                    Storage::disk('public')->delete($oldBook->cover);
+                }
+            }
+            // Guardar nueva imagen en storage/app/public/covers
+            $data['cover'] = $this->cover->store('covers', 'public');
+        } else {
+            // Si no se sube nada nuevo, mantenemos la que ya estaba o dejamos null
+            unset($data['cover']);
+        }
+
         $authors = $data['selected_authors'];
         unset($data['selected_authors']);
 
         $book = Book::updateOrCreate(['id' => $this->book_id], $data);
-        
         $book->authors()->sync($authors);
         
-        $this->dispatch('notify', 'Libro actualizado con éxito');
+        $this->dispatch('notify', 'Libro guardado con éxito');
         $this->setView('list');
     }
 
     public function deleteBook($id)
     {
+        // El SoftDelete mantendrá el registro pero puedes borrar la imagen físicamente si lo deseas
         Book::findOrFail($id)->delete();
         $this->dispatch('notify', 'Libro movido a papelera');
     }
 
-    /**
-     * GESTIÓN DE AUTORES (RELACIÓN)
-     */
     public function addAuthor($id) {
         if (!in_array($id, $this->selected_authors)) {
             $this->selected_authors[] = $id;
@@ -157,9 +168,6 @@ class LibrosCrud extends Component
         $this->selected_authors = array_diff($this->selected_authors, [$id]);
     }
 
-    /**
-     * GESTIÓN RÁPIDA DE CATEGORÍAS/AUTORES (MODALES)
-     */
     public function saveSecondary($type) {
         $this->validate(['name' => 'required|min:2|max:100']);
 
@@ -188,16 +196,12 @@ class LibrosCrud extends Component
     private function resetBookFields() {
         $this->reset([
             'book_id', 'title', 'isbn', 'category_id', 'selected_authors',
-            'editorial', 'published_year', 'description'
+            'editorial', 'published_year', 'description', 'cover', 'existing_cover'
         ]);
     }
 
-    /**
-     * RENDERIZADO Y FILTROS
-     */
     public function render()
     {
-        // Parametrización de búsqueda de autores
         $available_authors = strlen($this->author_search) >= self::MIN_SEARCH_CHARS 
             ? Author::where('name', 'like', "%{$this->author_search}%")
                 ->whereNotIn('id', $this->selected_authors)

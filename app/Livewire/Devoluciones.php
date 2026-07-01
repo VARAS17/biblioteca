@@ -41,7 +41,7 @@ public function calculateFine()
     $today = Carbon::now('America/Lima')->startOfDay();
 
     if ($today->gt($dueDate)) {
-        // ✅ dueDate->diffInDays($today), no al revés
+
         $this->days_late = $dueDate->diffInDays($today);
         $this->fine_amount = $this->days_late * 0.50;
     } else {
