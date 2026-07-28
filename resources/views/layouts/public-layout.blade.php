@@ -100,12 +100,14 @@
                                         <span>Gestión</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="adminDropdown ? 'rotate-180' : ''" class="transition-transform duration-300 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
                                     </button>
+                                    
                                     <div x-show="adminDropdown" @click.away="adminDropdown = false" x-cloak
                                         class="absolute top-full left-0 mt-3 w-56 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
                                         <a href="{{ route('admin.libros') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-60"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                                             Libros e Inventario
                                         </a>
+                        <!--                
                                         <a href="{{ route('admin.usuarios') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-60"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                                             Usuarios UNT
@@ -115,6 +117,7 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-80"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                                             Control de Multas
                                         </a>
+                                    -->    
                                     </div>
                                 </div>
                             @endhasanyrole
@@ -127,6 +130,7 @@
                                         <span>Circulación</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="circDropdown ? 'rotate-180' : ''" class="transition-transform duration-300 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
                                     </button>
+                                <!--
                                     <div x-show="circDropdown" @click.away="circDropdown = false" x-cloak
                                         class="absolute top-full left-0 mt-3 w-64 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
 
@@ -161,6 +165,7 @@
                                         @endhasanyrole
 
                                     </div>
+                                -->
                                 </div>
                             @endhasanyrole
                         @endauth
