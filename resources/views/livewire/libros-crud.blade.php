@@ -1,10 +1,10 @@
 <div class="max-w-6xl mx-auto p-4 md:p-8 bg-gray-50 min-h-screen">
     
-    <!-- 1. BARRA DE NAVEGACIÓN PRINCIPAL (Heurística #4: Consistencia y Estándares) -->
+    <!-- 1. BARRA DE NAVEGACIÓN PRINCIPAL -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
         <div>
             <h1 class="text-3xl font-black text-gray-900 tracking-tighter">
-                Biblioteca<span class="text-indigo-600">Pro</span>
+                Alejandria <span class="text-indigo-600">Cloud</span>
             </h1>
             <p class="text-sm text-gray-500 font-medium">Gestión integral de inventario y catálogo</p>
         </div>
@@ -25,11 +25,11 @@
         </nav>
     </div>
 
-    <!-- 2. FEEDBACK DE ESTADO (Heurística #1: Visibilidad del estado del sistema) -->
-    <div wire:loading class="fixed top-6 right-6 z-50">
+    <!-- 2. FEEDBACK DE ESTADO -->
+    <div wire:loading wire:target="saveBook, cover" class="fixed top-6 right-6 z-50">
         <div class="flex items-center gap-3 bg-white shadow-2xl border border-gray-100 px-6 py-3 rounded-2xl">
             <div class="animate-spin h-5 w-5 border-3 border-indigo-600 border-t-transparent rounded-full"></div>
-            <span class="text-sm font-bold text-gray-700">Sincronizando...</span>
+            <span class="text-sm font-bold text-gray-700">Procesando...</span>
         </div>
     </div>
 
@@ -61,8 +61,22 @@
                     @forelse($books as $book)
                     <tr class="hover:bg-indigo-50/30 transition group">
                         <td class="px-8 py-6">
-                            <h4 class="font-black text-gray-900 text-lg group-hover:text-indigo-600 transition leading-tight">{{ $book->title }}</h4>
-                            <p class="text-xs text-gray-400 font-mono mt-1">ISBN: {{ $book->isbn }}</p>
+                            <div class="flex items-center gap-4">
+                                <!-- Miniatura de Portada -->
+                                <div class="h-16 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-gray-100 shadow-sm">
+                                    @if($book->cover)
+                                        <img src="{{ asset('storage/' . $book->cover) }}" class="h-full w-full object-cover">
+                                    @else
+                                        <div class="h-full w-full flex items-center justify-center bg-gray-50">
+                                            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-lg group-hover:text-indigo-600 transition leading-tight">{{ $book->title }}</h4>
+                                    <p class="text-xs text-gray-400 font-mono mt-1">ISBN: {{ $book->isbn }}</p>
+                                </div>
+                            </div>
                         </td>
                         <td class="px-8 py-6 text-sm text-gray-600">
                             <div class="flex flex-col">
@@ -72,7 +86,7 @@
                             </div>
                         </td>
                         <td class="px-8 py-6">
-                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black {{ $book->copies_count > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black {{ $book->copies_count > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-800' }}">
                                 {{ $book->copies_count }} Ejemplares
                             </span>
                         </td>
@@ -92,7 +106,7 @@
     </div>
     @endif
 
-    <!-- VISTA 2: FORMULARIO DE LIBRO (Añadir/Editar) -->
+    <!-- VISTA 2: FORMULARIO DE LIBRO -->
     @if($view === 'form')
     <div class="max-w-4xl mx-auto bg-white p-10 rounded-[3rem] shadow-2xl border border-gray-100 animate-in slide-in-from-bottom-8 duration-500">
         <header class="flex justify-between items-center mb-10">
@@ -106,6 +120,33 @@
         </header>
 
         <form wire:submit.prevent="saveBook" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            
+            <!-- SECCIÓN NUEVA: CARGA DE PORTADA -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Imagen de Portada</label>
+                <div class="flex flex-col md:flex-row gap-6 items-center p-6 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200">
+                    <div class="w-32 h-44 bg-white rounded-2xl overflow-hidden shadow-inner flex-shrink-0 border border-gray-100">
+                        @if ($cover)
+                            <img src="{{ $cover->temporaryUrl() }}" class="w-full h-full object-cover">
+                        @elseif($existing_cover)
+                            <img src="{{ asset('storage/' . $existing_cover) }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="flex-1 text-center md:text-left">
+                        <p class="text-sm text-gray-500 mb-4 font-medium">Sube una imagen nítida para la carátula (JPG/PNG, máx 2MB)</p>
+                        <input type="file" wire:model="cover" id="cover" class="hidden" accept="image/*">
+                        <label for="cover" class="cursor-pointer bg-white border border-gray-200 px-6 py-3 rounded-xl text-sm font-black text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm inline-block">
+                            Seleccionar Archivo
+                        </label>
+                        @error('cover') <p class="text-red-500 text-xs mt-2 font-bold">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+
             <div class="md:col-span-2">
                 <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Título de la Obra</label>
                 <input wire:model="title" type="text" class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-indigo-500 transition-all text-lg font-bold">
@@ -145,7 +186,7 @@
                 @error('description') <span class="text-red-500 text-xs mt-2 ml-1 font-bold">{{ $message }}</span> @enderror
             </div>
 
-            <!-- SELECTOR DE TAGS/AUTORES (Heurística #7: Flexibilidad y Eficiencia) -->
+            <!-- SELECTOR DE TAGS/AUTORES -->
             <div class="md:col-span-2">
                 <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Autores vinculados</label>
                 <div class="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 min-h-[80px]">
@@ -249,13 +290,12 @@
     </div>
     @endif
 
-    <!-- VISTA 4 Y 5: GESTIÓN DE CATEGORÍAS Y AUTORES -->
+    <!-- VISTAS DE CATEGORÍAS Y AUTORES (Mantenidas Exactas) -->
     @if($view === 'categories' || $view === 'authors')
     @php $type = ($view === 'categories') ? 'category' : 'author'; @endphp
     <div class="max-w-2xl mx-auto animate-in slide-in-from-bottom-8 duration-500">
         <div class="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 mb-10">
             <h3 class="text-2xl font-black mb-8 text-gray-900 leading-tight">Gestionar {{ $type === 'category' ? 'Categorías Literarias' : 'Directorio de Autores' }}</h3>
-            
             <div class="flex gap-3">
                 <input wire:model="name" type="text" placeholder="Nombre completo..." class="flex-1 bg-gray-50 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-indigo-500 font-bold">
                 <button wire:click="saveSecondary('{{ $type }}')" class="bg-indigo-600 text-white px-8 rounded-2xl font-black hover:bg-indigo-700 transition shadow-lg">
@@ -281,12 +321,10 @@
 
 </div>
 
-<!-- SCRIPT DE NOTIFICACIONES (Heurística #9: Ayuda a reconocer y recuperarse de errores) -->
 <script>
     document.addEventListener('livewire:init', () => {
-       Livewire.on('notify', (message) => {
-           // Aquí podrías integrar un SweetAlert2 o Toastify para más elegancia
-           alert(message);
+       Livewire.on('notify', (event) => {
+           alert(event[0]);
        });
     });
 </script>

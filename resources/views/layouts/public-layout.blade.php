@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Biblioteca UNT | Excelencia Académica</title>
+    <title>ALEJANDRIA CLOUD | Excelencia Académica</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700&display=swap" rel="stylesheet" />
@@ -71,8 +71,8 @@
                             <img src="{{ asset('logobilbio.jpg') }}" alt="UNT" class="h-9 w-auto opacity-90 mix-blend-multiply">
                         </div>
                         <div class="hidden md:block">
-                            <h1 class="text-xs font-bold tracking-[0.15em] text-stone-800 uppercase">Biblioteca UNT</h1>
-                            <p class="text-[9px] text-stone-500 font-medium tracking-widest uppercase">Escuela de Informática</p>
+                            <h1 class="text-xs font-bold tracking-[0.15em] text-stone-800 uppercase">ALEJANDRIA CLOUD</h1>
+                            <p class="text-[9px] text-stone-500 font-medium tracking-widest uppercase">BIBLIOTECA</p>
                         </div>
                     </a>
 
@@ -85,7 +85,6 @@
                            class="text-[13px] font-medium tracking-tight transition-colors {{ request()->routeIs('catalogo') ? 'nav-link-active' : 'text-stone-500 hover:text-stone-900' }}">
                             Catálogo
                         </a>
-
                         @auth
                             @hasanyrole('alumno|docente')
                                 <a href="{{ route('mis.prestamos') }}" class="text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors">
@@ -93,20 +92,22 @@
                                 </a>
                             @endhasanyrole
 
-                            @role('bibliotecario')
-                                <!-- GESTIÓN -->
+                            {{-- GESTIÓN: solo bibliotecario --}}
+                            @hasanyrole('bibliotecario')
                                 <div class="relative">
-                                    <button @click="adminDropdown = !adminDropdown; circDropdown = false" 
+                                    <button @click="adminDropdown = !adminDropdown; circDropdown = false"
                                             class="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors">
                                         <span>Gestión</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="adminDropdown ? 'rotate-180' : ''" class="transition-transform duration-300 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
                                     </button>
-                                    <div x-show="adminDropdown" @click.away="adminDropdown = false" x-cloak 
-                                         class="absolute top-full left-0 mt-3 w-56 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
+                                    
+                                    <div x-show="adminDropdown" @click.away="adminDropdown = false" x-cloak
+                                        class="absolute top-full left-0 mt-3 w-56 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
                                         <a href="{{ route('admin.libros') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-60"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                                             Libros e Inventario
                                         </a>
+                        <!--                
                                         <a href="{{ route('admin.usuarios') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-60"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                                             Usuarios UNT
@@ -116,29 +117,57 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-80"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                                             Control de Multas
                                         </a>
+                                    -->    
                                     </div>
                                 </div>
+                            @endhasanyrole
 
-                                <!-- CIRCULACIÓN -->
+                            {{-- CIRCULACIÓN: bibliotecario ve todo, cada encargado ve solo lo suyo --}}
+                            @hasanyrole('bibliotecario|encargado_usuarios|encargado_catalogo|encargado_prestamos')
                                 <div class="relative">
-                                    <button @click="circDropdown = !circDropdown; adminDropdown = false" 
+                                    <button @click="circDropdown = !circDropdown; adminDropdown = false"
                                             class="flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-900 transition-colors">
                                         <span>Circulación</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="circDropdown ? 'rotate-180' : ''" class="transition-transform duration-300 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
                                     </button>
-                                    <div x-show="circDropdown" @click.away="circDropdown = false" x-cloak 
-                                         class="absolute top-full left-0 mt-3 w-56 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
-                                        <a href="{{ route('admin.prestamos') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-500"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                                            Nuevo Préstamo
-                                        </a>
-                                        <a href="{{ route('admin.devoluciones') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-500"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                                            Devoluciones
-                                        </a>
+                                <!--
+                                    <div x-show="circDropdown" @click.away="circDropdown = false" x-cloak
+                                        class="absolute top-full left-0 mt-3 w-64 bg-stone-50 border border-stone-200 rounded-2xl shadow-xl py-2 z-50">
+
+                                        @hasanyrole('bibliotecario|encargado_usuarios')
+                                            <a href="{{ route('admin.solicitud.prestamo') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                                Registrar Solicitud
+                                            </a>
+                                        @endhasanyrole
+
+                                        @hasanyrole('bibliotecario|encargado_catalogo')
+                                            <a href="{{ route('admin.aprobacion.catalogo') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-400"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                                Verificar Catálogo
+                                            </a>
+                                        @endhasanyrole
+
+                                        @hasanyrole('bibliotecario|encargado_prestamos')
+                                            <a href="{{ route('admin.registro.prestamo') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-400"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                                Entregar Ejemplar
+                                            </a>
+                                            <a href="{{ route('admin.devoluciones') }}" class="flex items-center px-4 py-2.5 text-[13px] text-stone-600 hover:bg-stone-100 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-stone-400"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                                Devoluciones
+                                            </a>
+                                            <div class="h-px bg-stone-200/50 mx-4 my-1"></div>
+                                            <a href="{{ route('admin.multas') }}" class="flex items-center px-4 py-2.5 text-[13px] text-rose-700 font-medium hover:bg-rose-50 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 opacity-80"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                                Control de Multas
+                                            </a>
+                                        @endhasanyrole
+
                                     </div>
+                                -->
                                 </div>
-                            @endrole
+                            @endhasanyrole
                         @endauth
                     </div>
                 </div>
@@ -158,8 +187,7 @@
                 <!-- DERECHA: Sesión -->
                 <div class="flex items-center gap-6">
                     @guest
-                        <a href="{{ route('login') }}" class="text-[13px] font-semibold text-stone-600 hover:text-stone-900 transition-colors">Entrar</a>
-                        <a href="{{ route('register') }}" class="bg-stone-800 text-stone-50 text-[12px] font-bold px-6 py-2.5 rounded-full hover:bg-stone-950 transition-all shadow-sm">Registrarse</a>
+                        <a href="{{ route('login') }}" class="bg-stone-800 text-stone-50 text-[12px] font-bold px-6 py-2.5 rounded-full hover:bg-stone-950 transition-all shadow-sm">Iniciar sesión</a>
                     @else
                         <!-- Alertas de Multa -->
                         <button class="relative p-2 text-stone-400 hover:text-stone-800 transition-colors">
@@ -255,5 +283,46 @@
             }
         });
     </script>
+    <!-- Contenedor de Notificaciones -->
+<div x-data="{ 
+        show: false, 
+        message: '', 
+        type: 'info' 
+    }"
+    x-on:notify.window="
+        message = $event.detail; 
+        show = true; 
+        setTimeout(() => show = false, 4000)
+    "
+    class="fixed bottom-5 right-5 z-[100] max-w-sm w-full">
+    
+    <div x-show="show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="bg-gray-900 border-l-4 border-indigo-500 text-white p-4 rounded-2xl shadow-2xl flex items-start space-x-3">
+        
+        <!-- Icono de Info/Alerta -->
+        <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+
+        <div class="flex-1">
+            <p x-text="message" class="text-xs font-bold uppercase tracking-widest leading-relaxed"></p>
+        </div>
+
+        <!-- Botón cerrar -->
+        <button @click="show = false" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
 </body>
 </html>

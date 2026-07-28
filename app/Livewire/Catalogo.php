@@ -2,89 +2,116 @@
 
 namespace App\Livewire;
 
-use App\Models\Book;
-use App\Models\Copy;
-use App\Models\Reservation;
-use Livewire\Component;
-use Livewire\WithPagination;
+use App\Models\{Book, Category, Author, Copy, Loan};
+use Livewire\{Component, WithPagination};
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Role;
 
 #[Layout('layouts.public-layout')]
 class Catalogo extends Component
 {
     use WithPagination;
 
+    // Propiedades de búsqueda y estado
     public $search = '';
-    public $selected_book = null; 
+    public $selected_book = null; // Guardaremos el ID o el Array del libro, no el objeto vivo para evitar errores de hidratación
 
-    // Función de "Apartado" para Docentes
+    // Resetear paginación cuando se busca
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Muestra el modal cargando el libro con sus relaciones
+     */
+    public function showDetails($bookId)
+    {
+        // Cargamos el libro y lo convertimos a array para que Livewire lo maneje mejor en el modal
+        $this->selected_book = Book::with(['category', 'authors'])
+            ->findOrFail($bookId)
+            ->toArray();
+    }
+
+    /**
+     * CIERRA EL MODAL (Solución al error de cierre)
+     */
+    public function closeDetails()
+    {
+        $this->selected_book = null;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Lógica de Reserva/Apartado para Docentes
+     */
     public function reserveBook($bookId)
     {
-        // 1. Verificación de Seguridad: Solo docentes
+        // 1. Verificación de Autenticación y Rol
         if (!Auth::check() || !Auth::user()->hasRole('docente')) {
-            $this->dispatch('notify', 'Acceso denegado. Solo docentes pueden apartar libros.');
+            $this->dispatch('notify', 'Solo docentes pueden realizar reservas desde el catálogo.');
             return;
         }
 
         $user = Auth::user();
 
-        // BLOQUEO POR DEUDA
+        // 2. Verificación de Deuda (Heurística: Prevención de errores)
         if ($user->real_debt >= 10) {
-            $this->dispatch('notify', 'No puedes apartar libros. Tienes una deuda pendiente de S/ ' . number_format($user->real_debt, 2) . '. Regulariza tu situación en biblioteca.');
+            $this->dispatch('notify', 'Bloqueado: tiene una deuda pendiente de S/ ' . number_format($user->real_debt, 2));
             return;
         }
 
-        // 2. Verificar si ya tiene una reserva pendiente por este mismo título (Evitar duplicados)
-        $exists = Reservation::where('user_id', $user->id)
-                             ->where('book_id', $bookId)
-                             ->where('status', 'pending')
-                             ->exists();
+        // 3. Límite de Préstamos Activos
+        $activeCount = Loan::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved', 'active'])
+            ->count();
+
+        if ($activeCount >= 5) {
+            $this->dispatch('notify', 'Límite alcanzado: máximo 5 préstamos/reservas permitidas.');
+            return;
+        }
+
+        // 4. Evitar duplicados para el mismo libro
+        $exists = Loan::where('user_id', $user->id)
+            ->where('book_id', $bookId)
+            ->whereIn('status', ['pending', 'approved', 'active'])
+            ->exists();
 
         if ($exists) {
-            $this->dispatch('notify', 'Ya tienes un apartado pendiente para este libro.');
+            $this->dispatch('notify', 'Ya tienes una solicitud activa para este libro.');
             return;
         }
 
-        // 3. Buscar el primer ejemplar físico que esté DISPONIBLE
-        $copy = Copy::where('book_id', $bookId)
-                    ->where('status', 'available')
-                    ->first();
-
-        if (!$copy) {
-            $this->dispatch('notify', 'Lo sentimos, ya no quedan ejemplares disponibles en este momento.');
-            return;
-        }
-
-        // 4. Crear el registro de Reserva (Apartado)
-        Reservation::create([
-            'user_id' => $user->id,
-            'book_id' => $bookId,
-            'reservation_date' => now(),
-            'status' => 'pending'
+        // 5. Creación de la solicitud
+        Loan::create([
+            'user_id'     => $user->id,
+            'book_id'     => $bookId,
+            'copy_id'     => null, // Se asigna cuando el bibliotecario aprueba
+            'loan_date'   => now(),
+            'return_date' => now()->addDays(14),
+            'status'      => 'pending',
         ]);
 
-        // 5. MARCAR EL EJEMPLAR COMO RESERVADO
-        // Esto lo quita de la disponibilidad del catálogo inmediatamente
-        $copy->update(['status' => 'reserved']);
-
-        $this->dispatch('notify', '¡Libro apartado! Tienes 48 horas para recoger el ejemplar ' . $copy->inventory_code);
-    }
-
-    public function showDetails($bookId)
-    {
-        $this->selected_book = Book::with(['category', 'authors', 'copies'])->find($bookId);
+        $this->closeDetails(); // Cerrar modal tras éxito
+        $this->dispatch('notify', '¡Reserva registrada con éxito! Espere la aprobación.');
     }
 
     public function render()
     {
-        $books = Book::where('title', 'like', '%' . $this->search . '%')
-            ->orWhere('isbn', 'like', '%' . $this->search . '%')
-            ->orWhereHas('authors', function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%');
+        // Búsqueda avanzada incluyendo autores y categorías
+        $books = Book::query()
+            ->where(function($query) {
+                $query->where('title', 'like', '%' . $this->search . '%')
+                      ->orWhere('isbn', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('authors', function($q) {
+                          $q->where('name', 'like', '%' . $this->search . '%');
+                      })
+                      ->orWhereHas('category', function($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    });
             })
-            ->with(['category', 'authors', 'copies'])
+            ->with(['category', 'authors']) // Cargamos relaciones necesarias
+            ->latest()
             ->paginate(12);
 
         return view('livewire.catalogo', [

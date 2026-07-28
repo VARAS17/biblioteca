@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Loan extends Model
 {
     protected $fillable = [
-        'user_id', 'copy_id', 'loan_date', 
+        'user_id', 'book_id', 'copy_id', 'loan_date', 
         'return_date', 'actual_return_date', 'status'
     ];
 
@@ -27,5 +27,10 @@ class Loan extends Model
 
     public function fine() {
         return $this->hasOne(Fine::class); // Un préstamo puede generar una multa
+    }
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class);
     }
 }

@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Crear Roles de Spatie
         $admin = Role::create(['name' => 'bibliotecario']);
+        $admin1 = Role::create(['name' => 'encargado_catalogo']);
+        $admin2 = Role::create(['name' => 'encargado_usuarios']);
+        $admin3 = Role::create(['name' => 'encargado_prestamos']);
         $docente = Role::create(['name' => 'docente']);
         $alumno = Role::create(['name' => 'alumno']);
 
@@ -25,8 +28,9 @@ class DatabaseSeeder extends Seeder
         // =====================================================
         // 2. Usuario Bibliotecario (Administrador)
         // =====================================================
+
         $bibliotecario = User::create([
-            'name' => 'Administrador Biblioteca',
+            'name' => 'Admin',
             'email' => 'admin@unitru.edu.pe',
             'password' => bcrypt('theadminuser2026'),
             'institutional_code' => '0001',
@@ -35,7 +39,40 @@ class DatabaseSeeder extends Seeder
             'loan_days' => 30,
         ]);
 
+        $bibliotecario1 = User::create([
+            'name' => 'Admin1',
+            'email' => 'admin1@unitru.edu.pe',
+            'password' => bcrypt('theadminuser2026'),
+            'institutional_code' => '0002',
+            'is_active' => true,
+            'max_books' => 10,
+            'loan_days' => 30,
+        ]);
+
+        $bibliotecario2 = User::create([
+            'name' => 'Admin2',
+            'email' => 'admin2@unitru.edu.pe',
+            'password' => bcrypt('theadminuser2026'),
+            'institutional_code' => '0003',
+            'is_active' => true,
+            'max_books' => 10,
+            'loan_days' => 30,
+        ]);
+
+        $bibliotecario3 = User::create([
+            'name' => 'Admin3',
+            'email' => 'admin3@unitru.edu.pe',
+            'password' => bcrypt('theadminuser2026'),
+            'institutional_code' => '0004',
+            'is_active' => true,
+            'max_books' => 10,
+            'loan_days' => 30,
+        ]);
+
         $bibliotecario->assignRole($admin);
+        $bibliotecario1->assignRole($admin1);
+        $bibliotecario2->assignRole($admin2);
+        $bibliotecario3->assignRole($admin3);
 
 
 
